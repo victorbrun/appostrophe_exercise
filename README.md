@@ -1,2 +1,9 @@
-# appostrophe_exercise
-Data engineering exercise as part of interview process at Appostrophe
+# Data engineering exercise | Appostrophe AB
+
+## Introduction and background
+
+## Plan of approach 
+
+## Implementation
+
+## Moving forward
