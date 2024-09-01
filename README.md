@@ -1,6 +1,6 @@
 # Data engineering exercise | Appostrophe AB
 
-# Introduction
+# 1 Introduction
 
 This repo contains code and documentation related to an exercise provided by Appostrophe AB as part of the interview process for a data engineering position.
 
@@ -17,9 +17,9 @@ This exercise involes the following tasks:
 2. Write the code needed to gather the required data from the [Facebook Graph API](https://developers.facebook.com/docs/graph-api/).
 3. Explain how above mentioned code can be extended to other apps and their related API, e.g., TikTok and Google Ads.
 
-# Project plan
+# 2 Project plan
 
-## Strtegic considerations 
+## 2.1 Strtegic considerations 
 
 The goal of this project is to build a data extraction process where marketing data is gathered from (possibly) multiple sources, and a data loading process where the raw data is uploaded to Google BigQuery. Consequently, a natural choice would be to implement an ETL (Extract, Transform, Load) or the more modern alternative, an ELT (Extract, Load, Transform). To determine whether an ETL or ELT is best fit-for-purpose, and to understand which surrounding technologies to use, there are some aspects that require careful consideration:
 
@@ -29,19 +29,22 @@ The goal of this project is to build a data extraction process where marketing d
 4. **Complexity and maintenance:** Appostrophe is a fast-moving start-up and therefore requires a solution that does not overcomplicate things. The solution should be easily maintained and brought into production within a short time frame.
 5. **Data sensitivity:** As data can be highly sensitive, it is necessary to consider whether the data concerning this project requires special treatment due to privacy or sensitivity concerns.
 
-These different aspects are discussed in the following sections.
+## 2.2 Proposed solution
 
-### Ecosystem lock-in 
+Implement an ELT.
 
-### Robustness and reliability
+- Class called DataExtractor which fethes the data via HTTPS. This class then dumps the data into (where) and produces a data quality report summarising both 5 dims of data quality. The DQ report moreover contains summary over the data that was added to BigQuery.
+- Load the data directly into BQ, without any transformation. Create a single data set for marketing data where each table contains the data from a specific source. Note that if the source API would change, a new table could be created. If just a single new column is included, old missing values can just be set to null.
+- Create viewes accessable by data analysts. These views will transform the data into a relational data model.
 
-### Scalability
+By using this solution we:
+- Prevent ecosystem lock-in by writing our own data exctraction script, which is platform agnostic. Moreover, the data model provided by views in the transformation step is written in SQL making it easy to implement on different paltforms.
+- Ensuring robustness and reliability by producing DQ report. Moreover, by saving the raw input data in a single table there is no advanced logic performed to, e.g., normalising it. Thus we can look at the data in BQ and say with high certainty that this is how it was given to us by the API.
+- Scalability is ensurd by selecting serverless GCP products which can expanded to fit the data. The only possible bottleneck may be the views acessed by the analysts. If these contain very advanced locig it may take time to run them, consumping precious compute time, as each view will be run multiple time. This could easily be solved by extending the solution with an additional BQ dataset which is the output of the views. Thus turning the old BQ into a staging BQ only containing the transformation logic and the raw data.
+- Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic) which also makes it easy to maintain and troble shoot as we contain the possible complicated logic to the views.
+- There is currently no data sensitivity aspects to take into account as the Meta marketing data is depersonalised already comming from the API. If this would change with additional data sources, a solution would be to create this staging data set and incorporating depersonalisation of the data in the trannsomation logic. 
 
-### Complexity and maintenance
-
-### Data sensitivity
-
-
+Note that if the staging data set would be created, this would become an ETL.
 
 ## Extraction
 
