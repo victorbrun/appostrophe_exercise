@@ -46,15 +46,13 @@ By using this solution we:
 
 Note that if the staging data set would be created, this would become an ETL.
 
-## Extraction
+## 2.3 Future extensions
 
-## Transform
+## TODO
+1. Clean up proposed solution.
+2. Create data model. 
+3. Create diagram for solution.
+4. Write future extensions.
+5. Create diagram for future extension.
+6. Write DataExtractor.
 
-## Load
-
-# Implementation
-
-# Moving forward
-
-# Sources 
-- 
