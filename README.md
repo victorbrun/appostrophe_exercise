@@ -29,37 +29,46 @@ The goal of this project is to build a data extraction process where marketing d
 4. **Complexity and maintenance:** Appostrophe is a fast-moving start-up and therefore requires a solution that does not overcomplicate things. The solution should be easily maintained and brought into production within a short time frame.
 5. **Data sensitivity:** As data can be highly sensitive, it is necessary to consider whether the data concerning this project requires special treatment due to privacy or sensitivity concerns.
 
-## 2.2 Proposed solution
+## 2.2 Proposed Solution
 
 By implementing an ELT approach, we propose the following steps:
 
 1. **Data Extraction**:
-	- An abstract class called DataExtractor is implemented containing abstracts methods for fetching data via HTTPS, producing data quality (DQ) reports and reports containing a summary of the fetched data. Each API will then have its own implementation of this abstract class containing the API specific logic. The API specific class then dumps the data and reports directly into BQ.
+    - Implement an abstract class called `DataExtractor` is containing abstract methods for fetching data via HTTPS, producing Data Quality (DQ) reports, and reports containing a summary of the fetched data. Each API will then have its own implementation of this abstract class containing the API-specific logic. The API-specific class then dumps the data and reports directly into BQ.
 
 2. **Data Loading**:
-	- Load the data directly into BQ without any transformation. Create a single dataset for marketing data, where each table contains the data from a specific source. Note that if the source API changes, a new table could be created. If only a single new column is added, old missing values can simply be set to null.
+    - Load the data directly into BQ without any transformation. Create a single dataset for marketing data, where each table contains the data from a specific source (and possibly API version if the schema changes are large enough). Morover, the reports produced by the `DataExtractor` implementations will be put in a separate dataset in a table called `DataQualityReports` and `DataLoadSummary`. Each of these tables will have a column(s) relating it to the the table and subsequently also rows they concern in the marketing dataset. 
 
 3. **Data Transformation**:
-	- Create materialised views accessible by data analysts. These views will transform the data into a relational data model.
+    - Create views accessible by data analysts. These views will transform the data into a relational data model.
 
-Benefits of this ELT Solution:
+**Benefits of this ELT Solution:**
 
 - **Ecosystem Flexibility**:
-	- Prevent ecosystem lock-in by writing our own data extraction script, which is platform-agnostic. Additionally, the data model provided by views in the transformation step is written in SQL, making it easy to implement on different platforms.
+    - Prevent ecosystem lock-in by writing our own data extraction script, which is platform-agnostic, and executing these using Google Cloud Functions. Additionally, the data model provided by views in the transformation step is written in SQL, making it easy to implement on different platforms.
 
 - **Robustness and Reliability**:
-	- Ensuring robustness and reliability by producing a DQ report. Moreover, by saving the raw input data in a single table, there is no need for advanced logic (e.g., normalising it). Thus, we can examine the data in BQ and confidently assert that it reflects what was provided by the API.
+    - Ensure robustness and reliability by producing a DQ report. Moreover, by saving the raw input data in a single table, there is no need for advanced logic (e.g., normalising it). Thus, we can examine the data in BQ and confidently assert that it reflects what was provided by the API.
 
 - **Scalability**:
-	- Scalability is ensured by selecting serverless GCP products, which can expand to fit the data. The only possible bottleneck may be the views accessed by analysts. If these contain very advanced logic, it may take time to run them, consuming precious compute time, as each view will be run multiple times. This could easily be solved by materialising the views in BQ. By doing this the results from the views are cached removing the need for recomputing them upon every access.
+    - Scalability is ensured by selecting serverless GCP products, which can expand to fit the data. The only possible bottleneck may be the views accessed by analysts. If these contain very advanced logic, it may take time to run them, consuming precious compute time, as each view will be run multiple times. This could easily be solved by materialising the views in BQ. By doing this, the results from the views are cached, removing the need for recomputing them upon every access.
 
 - **Simplicity and Maintainability**:
-	- Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic), making it easy to maintain and troubleshoot, as we confine the potentially complicated logic to the views.
+    - Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic), making it easy to maintain and troubleshoot, as we confine the potentially complicated logic to the views.
 
 - **Data Sensitivity**:
-	- Currently, there are no data sensitivity aspects to consider as the Meta marketing data is depersonalised when received from the API. If this changes with additional data sources, a solution would be to create this staging dataset and incorporate the depersonalisation of the data in the transformation logic.
+    - Currently, there are no data sensitivity aspects to consider as the Meta marketing data is depersonalised when received from the API. However, since BQ by default encrypts all data before writing it to disk and decrypts it on an authorised request, there are already some data sensitivity measures built into the solution. If the nature of the data changes to include highly personal information, a solution would be to incorporate the depersonalisation of the data in the transformation logic and restrict access to the raw data.
 
-## 2.3 Future extensions
+## 2.3 Future Extensions
+
+- **Ecosystem Flexibility**:
+    - To further reduce ecosystem lock-in, the data extraction scripts may be containerised using something like Docker. Moreover, the cloud architecture can be written in something like Terraform. This way, the entire project could be version-controlled and hosted on, e.g., GitHub and be automatically deployed using a CI/CD pipeline with GitHub Actions. By hosting the project as a single repository on a solution such as GitHub, convenient documentation and issue tracking tools may also be leveraged.
+
+- **Robustness and Reliability**:
+    - Initially, a simple data quality report considering the five DQ dimensions ought to suffice. As the project increases both in scope and possibly also in team members, there is no need to reinvent the wheel. Thus, implementing a DQ tool such as Apache Griffin would be a good extension.
+
+- **Data lineage**:
+	- The data load summary report provides data lineage for the between the extraction and load layers. To also provide data lineage in the transformation layer [data lineage in BigQuery](https://cloud.google.com/data-catalog/docs/how-to/track-lineage) ought to be set up.
 
 ## TODO
 2. Create data model. 
