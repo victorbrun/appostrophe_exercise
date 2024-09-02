@@ -31,25 +31,39 @@ The goal of this project is to build a data extraction process where marketing d
 
 ## 2.2 Proposed solution
 
-Implement an ELT.
+By implementing an ELT approach, we propose the following steps:
 
-- Class called DataExtractor which fethes the data via HTTPS. This class then dumps the data into (where) and produces a data quality report summarising both 5 dims of data quality. The DQ report moreover contains summary over the data that was added to BigQuery.
-- Load the data directly into BQ, without any transformation. Create a single data set for marketing data where each table contains the data from a specific source. Note that if the source API would change, a new table could be created. If just a single new column is included, old missing values can just be set to null.
-- Create viewes accessable by data analysts. These views will transform the data into a relational data model.
+1. Data Extraction:
+	- A class called DataExtractor fetches the data via HTTPS. This class then dumps the data into a designated storage location and produces a data quality (DQ) report summarising the five dimensions of data quality. The DQ report also contains a summary of the data that was added to BigQuery.
 
-By using this solution we:
-- Prevent ecosystem lock-in by writing our own data exctraction script, which is platform agnostic. Moreover, the data model provided by views in the transformation step is written in SQL making it easy to implement on different paltforms.
-- Ensuring robustness and reliability by producing DQ report. Moreover, by saving the raw input data in a single table there is no advanced logic performed to, e.g., normalising it. Thus we can look at the data in BQ and say with high certainty that this is how it was given to us by the API.
-- Scalability is ensurd by selecting serverless GCP products which can expanded to fit the data. The only possible bottleneck may be the views acessed by the analysts. If these contain very advanced locig it may take time to run them, consumping precious compute time, as each view will be run multiple time. This could easily be solved by extending the solution with an additional BQ dataset which is the output of the views. Thus turning the old BQ into a staging BQ only containing the transformation logic and the raw data.
-- Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic) which also makes it easy to maintain and troble shoot as we contain the possible complicated logic to the views.
-- There is currently no data sensitivity aspects to take into account as the Meta marketing data is depersonalised already comming from the API. If this would change with additional data sources, a solution would be to create this staging data set and incorporating depersonalisation of the data in the trannsomation logic. 
+2. Data Loading:
+	- Load the data directly into BigQuery (BQ) without any transformation. Create a single dataset for marketing data, where each table contains the data from a specific source. Note that if the source API changes, a new table could be created. If only a single new column is added, old missing values can simply be set to null.
 
-Note that if the staging data set would be created, this would become an ETL.
+3. Data Transformation:
+	- Create views accessible by data analysts. These views will transform the data into a relational data model.
+
+Benefits of this ELT Solution:
+
+- Ecosystem Flexibility:
+	- Prevent ecosystem lock-in by writing our own data extraction script, which is platform-agnostic. Additionally, the data model provided by views in the transformation step is written in SQL, making it easy to implement on different platforms.
+
+- Robustness and Reliability:
+	- Ensuring robustness and reliability by producing a DQ report. Moreover, by saving the raw input data in a single table, there is no need for advanced logic (e.g., normalising it). Thus, we can examine the data in BQ and confidently assert that it reflects what was provided by the API.
+
+- Scalability:
+		- Scalability is ensured by selecting serverless GCP products, which can expand to fit the data. The only possible bottleneck may be the views accessed by analysts. If these contain very advanced logic, it may take time to run them, consuming precious compute time, as each view will be run multiple times. This could easily be solved by extending the solution with an additional BQ dataset, which is the output of the views, thereby turning the old BQ into a staging BQ that only contains the transformation logic and the raw data.
+
+- Simplicity and Maintainability:
+	- Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic), making it easy to maintain and troubleshoot, as we confine the potentially complicated logic to the views.
+
+- Data Sensitivity:
+	- Currently, there are no data sensitivity aspects to consider as the Meta marketing data is depersonalised when received from the API. If this changes with additional data sources, a solution would be to create this staging dataset and incorporate the depersonalisation of the data in the transformation logic.
+
+Note: If the staging dataset is created, this approach would transition from an ELT to an ETL.
 
 ## 2.3 Future extensions
 
 ## TODO
-1. Clean up proposed solution.
 2. Create data model. 
 3. Create diagram for solution.
 4. Write future extensions.
