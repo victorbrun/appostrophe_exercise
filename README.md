@@ -51,7 +51,7 @@ Benefits of this ELT Solution:
 	- Ensuring robustness and reliability by producing a DQ report. Moreover, by saving the raw input data in a single table, there is no need for advanced logic (e.g., normalising it). Thus, we can examine the data in BQ and confidently assert that it reflects what was provided by the API.
 
 - Scalability:
-		- Scalability is ensured by selecting serverless GCP products, which can expand to fit the data. The only possible bottleneck may be the views accessed by analysts. If these contain very advanced logic, it may take time to run them, consuming precious compute time, as each view will be run multiple times. This could easily be solved by extending the solution with an additional BQ dataset, which is the output of the views, thereby turning the old BQ into a staging BQ that only contains the transformation logic and the raw data.
+	- Scalability is ensured by selecting serverless GCP products, which can expand to fit the data. The only possible bottleneck may be the views accessed by analysts. If these contain very advanced logic, it may take time to run them, consuming precious compute time, as each view will be run multiple times. This could easily be solved by extending the solution with an additional BQ dataset, which is the output of the views, thereby turning the old BQ into a staging BQ that only contains the transformation logic and the raw data.
 
 - Simplicity and Maintainability:
 	- Complexity is kept to a minimum by writing as little code as possible (data extraction class and view SQL logic), making it easy to maintain and troubleshoot, as we confine the potentially complicated logic to the views.
