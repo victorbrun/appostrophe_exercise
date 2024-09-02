@@ -23,11 +23,11 @@ This exercise involves the following tasks:
 
 The goal of this project is to build a data extraction process where marketing data is gathered from (possibly) multiple sources, and a data loading process where the raw data is uploaded to Google BigQuery. Consequently, a natural choice would be to implement an ETL (Extract, Transform, Load) or the more modern alternative, an ELT (Extract, Load, Transform). To determine whether an ETL or ELT is best fit-for-purpose, and to understand which surrounding technologies to use, there are some aspects that require careful consideration:
 
-1. **Ecosystem lock-in:** As the load location of the data is part of Google Cloud Platform (GCP), it would be straightforward to build a complete solution utilising GCP tools. However, ecosystem lock-in needs to be considered to minimise future work if Appostrophe decides to switch cloud providers or move to an on-premise solution.
-2. **Robustness and reliability:** This project will act as the interface between "the world" and Appostrophe, and thus needs to be robust while also ensuring that the data it loads into Google BigQuery is reliable.
-3. **Scalability:** Although Appostrophe is a start-up, the solution needs to cater for expansion, both in terms of data sources and the amount of data it can handle.
+1. **Ecosystem lock-in**: As the load location of the data is part of Google Cloud Platform (GCP), it would be straightforward to build a complete solution utilising GCP tools. However, ecosystem lock-in needs to be considered to minimise future work if Appostrophe decides to switch cloud providers or move to an on-premise solution.
+2. **Robustness and reliability**: This project will act as the interface between "the world" and Appostrophe, and thus needs to be robust while also ensuring that the data it loads into Google BigQuery is reliable.
+3. **Scalability**: Although Appostrophe is a start-up, the solution needs to cater for expansion, both in terms of data sources and the amount of data it can handle.
 4. **Complexity and maintenance:** Appostrophe is a fast-moving start-up and therefore requires a solution that does not overcomplicate things. The solution should be easily maintained and brought into production within a short time frame.
-5. **Data sensitivity:** As data can be highly sensitive, it is necessary to consider whether the data concerning this project requires special treatment due to privacy or sensitivity concerns.
+5. **Data sensitivity**: As data can be highly sensitive, it is necessary to consider whether the data concerning this project requires special treatment due to privacy or sensitivity concerns.
 
 ## 2.2 Proposed Solution
 
@@ -42,7 +42,7 @@ By implementing an ELT approach, we propose the following steps:
 3. **Data Transformation**:
     - Create views accessible by data analysts. These views will transform the data into a relational data model.
 
-**Benefits of this ELT Solution:**
+Benefits of this ELT Solution:
 
 - **Ecosystem Flexibility**:
     - Prevent ecosystem lock-in by writing our own data extraction script, which is platform-agnostic, and executing these using Google Cloud Functions. Additionally, the data model provided by views in the transformation step is written in SQL, making it easy to implement on different platforms.
@@ -73,7 +73,6 @@ By implementing an ELT approach, we propose the following steps:
 ## TODO
 2. Create data model. 
 3. Create diagram for solution.
-4. Write future extensions.
 5. Create diagram for future extension.
 6. Write DataExtractor.
 
