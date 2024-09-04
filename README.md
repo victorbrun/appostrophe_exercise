@@ -62,15 +62,31 @@ Benefits of this ELT Solution:
 ## 2.3 Future Extensions
 
 - **Ecosystem Flexibility**:
-    - To further reduce ecosystem lock-in, the data extraction scripts may be containerised using something like Docker. Moreover, the cloud architecture can be written in something like Terraform. This way, the entire project could be version-controlled and hosted on, e.g., GitHub and be automatically deployed using a CI/CD pipeline with GitHub Actions. By hosting the project as a single repository on a solution such as GitHub, convenient documentation and issue tracking tools may also be leveraged.
+    - To further reduce ecosystem lock-in, the data extraction scripts could be containerised using a tool like Docker. Additionally, the cloud architecture could be defined using Terraform. This approach allows the entire project to be version-controlled, hosted on platforms like GitHub, and automatically deployed using a CI/CD pipeline with GitHub Actions. By hosting the project as a single repository on a platform like GitHub, convenient documentation and issue-tracking tools can also be utilised.
 
 - **Robustness and Reliability**:
-    - Initially, a simple data quality report considering the five DQ dimensions ought to suffice. As the project increases both in scope and possibly also in team members, there is no need to reinvent the wheel. Thus, implementing a DQ tool such as Apache Griffin would be a good extension.
+    - Initially, a simple data quality report considering the five DQ dimensions ought to suffice. As the project increases both in scope and team members, there is no need to reinvent the wheel. Thus, implementing a DQ tool such as Apache Griffin would be a valuable extension.
+
+- **Scalability, Simplicity and Maintainability**: As the project app grows, a multitude of different data sources may be added. And as the analysts require more advanced metrics, the transformations done in the materialised views may become increasingly complex. Moreover, the code for these transformations could become poorly organised if they are all considered to be at the same level. To solve this, one could implement a medallion data architecture with its bronze, silver, and gold layers utilising different datasets in BQ. The bronze layer would consist of the tables as described in the initial proposed solution. The silver layer would contain slightly transformed data, e.g., null value treatment, outlier removal, etc. The gold layer would contain the tables or views accessible to analysts. By following this architecture, the SQL code performing the transformations can be organised by `bronze -> silver` and `silver -> gold`.
 
 - **Data lineage**:
 	- The data load summary report provides data lineage for the between the extraction and load layers. To also provide data lineage in the transformation layer [data lineage in BigQuery](https://cloud.google.com/data-catalog/docs/how-to/track-lineage) ought to be set up.
 
-## TODO
+## 2.4 Timeline
+Below are the time estimates for implementing the initially proposed solution by a single developer, i.e., without extentsions.
+
+- **Extract (3/2/1 weeks)**: 
+	- Implementing the abstract class `DataExtractor` and the class `FacebooGraphDataExtractor(DataExtractor)` will take two weeks, as the logic for the different reports need to be carefully laid out in order to ensure proper data lineage. The implementation of the Facebook Graph API will take one week, as the transformation from JSON to a table format will be very simple. Note that these two tasks can be done somewhat in parallel, with one person developing the abstract class while the other implements the bulk of the logic to fetch the data.
+	- The second API to be implemented is estimated to take two weeks. The reason for this is that some, if not all, of the abstract class `DataExtractor` will have to be rewritten to ensure that it is flexible enough to properly encompass multiple APIs.
+	- Subsequent APIs is estimated to take around one week to implement.
+
+- **Load (1 week)**: Implementing this step involves configuring BQ and setting up the datasets. This is expected to take one week for someone with limited experience with Google Cloud Platform.
+
+- **Transform (5 weeks)**: This step is estimated to take five weeks, even though some transformations are independent and can be developed in parallel. The large allocation of time is attributed to creating a data model, as well as going back and forth with analysts to develop the transformations they request. However, including the analysts in this step, i.e., allowing them to also write the transformations, could probably shorten this process by a week, as this back-and-forth would not be needed to the same extent
+
+From above we can conclude that the total estimated time for this project is 10 weeks. However, it is possible to shorten this time by putting multiple developers on it, and by letting analysts help out with the development of the transformation step.
+
+.## TODO
 2. Create data model. 
 3. Create diagram for solution.
 5. Create diagram for future extension.
