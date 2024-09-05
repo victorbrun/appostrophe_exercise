@@ -7,7 +7,7 @@ import pandas as pd
 from typing import List
 
 # Local imports
-from data_extractor_base import DataExtractorBase
+from .data_extractor_base import DataExtractorBase
 
 class DataExtractorFacebook(DataExtractorBase):
     """

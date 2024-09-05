@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 
 from data_extractors import DataExtractorFacebook
 
-USE_MOCK_API = False
+USE_MOCK_API = True
 
 def main():
     # Loading in dotenv file containig

@@ -1,1 +1,1 @@
-from data_extractor_facebook import *
+from .data_extractor_facebook import *
