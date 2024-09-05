@@ -4,13 +4,40 @@ import uuid
 import requests
 import pandas as pd
 
-from typing import List
+from typing import Dict, List
 
 # Local imports
 from .data_extractor_base import DataExtractorBase
 
 class DataExtractorFacebook(DataExtractorBase):
     """
+    Extracts advertising data from the Facebook Graph API or a mock endpoint
+    and processes it for further use.
+
+    Attributes
+    ----------
+    api_version : str
+        The version of the Facebook Graph API to use.
+    url : str
+        The base URL for the Facebook Graph API.
+    mandatory_metrics : list
+        A list of metrics that must always be fetched.
+    access_token : str
+        The access token for Facebook Graph API.
+    app_secret : str
+        The app secret for Facebook Graph API.
+    app_id : str
+        The app ID for Facebook Graph API.
+    ad_account_id : str
+        The ID of the advertising account from which to pull data.
+    metrics_to_fetch : list
+        A list of metrics to be fetched, including mandatory metrics.
+    use_mock_end_point : bool,
+        A flag indicating whether to use a mock API endpoint.
+    mock_api_end_point : str
+        The mock API endpoint URL.
+    end_point : str
+        The constructed Facebook Graph API endpoint to fetch ads insights.
     """
 
     # Instance invariant Facebook Graph API params
@@ -41,12 +68,35 @@ class DataExtractorFacebook(DataExtractorBase):
         metrics_to_fetch: List[str],
         use_mock_end_point: bool = True
     ):
-        """
+        """Initializes the DataExtractorFacebook instance with the necessary credentials and 
+        settings for the Facebook Graph API.
+
+        Parameters
+        ----------
+        access_token : str
+            The access token for Facebook Graph API authentication.
+        app_secret : str
+            The app secret for Facebook Graph API authentication.
+        app_id : str
+            The app ID for Facebook Graph API.
+        ad_account_id : str
+            The advertising account ID to fetch data from.
+        metrics_to_fetch : list of str
+            The list of metrics to be fetched in addition to mandatory metrics.
+        use_mock_end_point : bool, default=True
+            Whether to use a mock endpoint for testing.
+
+        Raises
+        ------
+        Exception
+            If the MOCK_END_POINT environment variable is not set.
         """
         super().__init__()
 
         # Mock API endpoint. Used to fetch example data.
         self.mock_api_end_point = os.environ.get("MOCK_END_POINT") 
+        if self.mock_api_end_point is None:
+            raise Exception("Missing environment variable: MOCK_END_POINT")
 
         # Sets attributes
         self.access_token = access_token
@@ -63,13 +113,17 @@ class DataExtractorFacebook(DataExtractorBase):
         self.end_point = self.url + f"act_{self.ad_account_id}/insights"
    
     def fetch_data(self) -> pd.DataFrame:
-        """Returns a single pandas containing all necessary data from the implemented
-        API.
+        """Fetches data from the Facebook Graph API or mock endpoint and returns it as a pandas DataFrame.
 
         Returns
         -------
         pd.DataFrame
-            Single consolidated dataframe.
+            A DataFrame containing all requested advertising data.
+
+        Warns
+        -----
+        Warning
+            If an error occurs during the HTTP request, an empty DataFrame is returned.
         """
         try: 
             return self._fetch_ads_insights()
@@ -78,9 +132,21 @@ class DataExtractorFacebook(DataExtractorBase):
 
             return pd.DataFrame()
        
-    def load_to_bq(self, df: pd.DataFrame, **kwargs):
-        """Establishes connection to Google BigQuery and uploads
-        the data in `df` to correct location.
+    def load_to_bq(self, df: pd.DataFrame, **kwargs: Dict):
+        """Uploads the provided DataFrame to Google BigQuery.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame containing the data to be uploaded.
+        **kwargs : dict
+            Additional arguments for BigQuery upload, e.g. parameters needed to establish
+            BQ connection.
+
+        Warns
+        -----
+        Warning
+            If the DataFrame is empty, no data will be uploaded.
         """
         # If df is empty dataframe no data will be uploaded
         if df.empty:
@@ -94,28 +160,22 @@ class DataExtractorFacebook(DataExtractorBase):
         raise NotImplementedError()
 
     def _fetch_ads_insights(self) -> pd.DataFrame:
-        """For each add connected to the account 
-        identifier by `self.ad_account_id`, it fetches
-        the following data:
-            - Campaign name
-            - Campaign id
-            - Ad name
-            - Ad id
-            - Adset name 
-            - Adset id 
-            - Date start 
-            - Day end
-            - Country
-            - Any additional metrics specified in metrics_to_fetch 
-            constructor argument.
+        """Fetches advertising insights data from the Facebook Graph API.
 
-        The data has a daily resolution and always concerns yesterday.
+        This method fetches data at the ad level for yesterday for every add 
+        connected to `ad_account_id`, grouped by country, and includes the 
+        mandatory and additional metrics specified in `metrics_to_fetch`.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe where each row represents yesterdays metrics for a given ad
+            A DataFrame where each row represents yesterday's metrics for a given ad 
             in a given country.
+
+        Raises
+        ------
+        requests.exceptions.HTTPError
+            If the API returns an error.
         """
         # Constructs payload for request 
         payload = {

@@ -24,7 +24,11 @@ def main():
     # mock API end point
     metrics_to_fetch = [
         "spend",
-        "clicks"
+        "clicks",
+        "reach",
+        "impressions",
+        "atrributed_installs",
+        "attributed_conversions"
     ]
 
 
@@ -42,6 +46,8 @@ def main():
     # was put in production
     df = de.fetch_data()
     print(df)
+
+    
 
 if __name__ == "__main__":
     main()
