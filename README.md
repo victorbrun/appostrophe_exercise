@@ -31,20 +31,24 @@ The goal of this project is to build a data extraction process where marketing d
 
 ## 2.2 Proposed Solution
 
-By implementing an ELT approach, we propose the following steps:
+Although ETL is a tried and tested approach, it introduces additional complexities compared to ELT, such as the need for a staging layer between extraction and transformation. Moreover, the fact that the transformation layer is not a part of the interface towards the analyst can be beneficial in large organisations. However, providing analysts with easy access to the source code of the transformation layer is more suitable for a project of this size. Thus, the proposed solution is to implement an ELT process.
+
+Below is a description of the implementation of the different ELT layers:
 
 1. **Data Extraction**:
-    - Implement an abstract class called `DataExtractorBase` is containing abstract methods for fetching data via HTTPS, producing Data Quality (DQ) reports, and reports containing a summary of the fetched data. Each API will then have its own implementation of this abstract class containing the API-specific logic. The API-specific class then dumps the data and reports directly into BQ.
+    - This layer consists of an abstract class called `DataExtractorBase` containing abstract methods for fetching data via HTTPS, producing Data Quality (DQ) reports, and reports containing a summary of the fetched data. Each API will then have its own implementation of this abstract class containing the API-specific logic. Each API-specific class will be implemented in a separate script that is run using Google Cloud Functions and dumps the data and reports directly into BQ. 
 
 2. **Data Loading**:
-    - Load the data directly into BQ without any transformation. Create a single dataset for marketing data, where each table contains the data from a specific source (and possibly API version if the schema changes are large enough). Morover, the reports produced by the `DataExtractorBase` implementations will be put in a separate dataset in a table called `DataQualityReports` and `DataLoadSummary`. Each of these tables will have a column(s) relating it to the the table and subsequently also rows they concern in the marketing dataset. 
+    - This layer will load the data directly into BQ without any transformation. A single dataset for marketing data will be created, where each table contains the data from a specific source (and possibly API version if the schema changes are large enough). Morover, the reports produced by the `DataExtractorBase` implementations will be put in a separate dataset in a table called `DataQualityReports` and `DataLoadSummary`. Each of these report tables will have a column(s) relating it to the the table and subsequently also rows they concern in the marketing dataset. 
 
 3. **Data Transformation**:
     - Create views accessible by data analysts. These views will transform the data into a relational data model.
 
-Beacuse the transformations in the exctraction layer, i.e. turning JSON data into a tabular format, are very simple, there is no need for advanched orchestration. Instead the solution will rely on a Cloud Scheduler to run the extraction procedure once every day. Moreover, due to the simple structure of the data uploaded to BQ in the load layer, different APIs will not independent. This means that every API can have a separate Cloud Function running the extraction script in parallel. 
+As the majority of the compute-intensive logic in this project is handled by BQ, there is no need for advanced orchestration services. Instead, the solution will rely on Cloud Scheduler to run the extraction procedure once a day. Moreover, due to the simple structure of the data uploaded to BQ in the load layer, different APIs will remain independent. This means each API can have a separate Cloud Function running the extraction script in parallel.
 
-Benefits of this ELT Solution:
+## 2.3 Evaluation of proposed solution
+
+Below is an evaluation of the proposed solution against the strategic considerations:
 
 - **Ecosystem Flexibility**:
     - Prevent ecosystem lock-in by writing our own data extraction script, which is platform-agnostic, and executing these using Google Cloud Functions. Additionally, the data model provided by views in the transformation step is written in SQL, making it easy to implement on different platforms.
@@ -61,7 +65,7 @@ Benefits of this ELT Solution:
 - **Data Sensitivity**:
     - Currently, there are no data sensitivity aspects to consider as the Meta marketing data is depersonalised when received from the API. However, since BQ by default encrypts all data before writing it to disk and decrypts it on an authorised request, there are already some data sensitivity measures built into the solution. If the nature of the data changes to include highly personal information, a solution would be to incorporate the depersonalisation of the data in the transformation logic and restrict access to the raw data.
 
-## 2.3 Future Extensions
+## 2.4 Future Extensions
 
 - **Ecosystem Flexibility**:
     - To further reduce ecosystem lock-in, the data extraction scripts could be containerised using a tool like Docker. Additionally, the cloud architecture could be defined using Terraform. This approach allows the entire project to be version-controlled, hosted on platforms like GitHub, and automatically deployed using a CI/CD pipeline with GitHub Actions. By hosting the project as a single repository on a platform like GitHub, convenient documentation and issue-tracking tools can also be utilised.
@@ -69,14 +73,15 @@ Benefits of this ELT Solution:
 - **Robustness and Reliability**:
     - Initially, a simple data quality report considering the five DQ dimensions ought to suffice. As the project increases both in scope and team members, there is no need to reinvent the wheel. Thus, implementing a DQ tool such as Apache Griffin would be a valuable extension.
 
-- **Scalability, Simplicity and Maintainability**: As the project app grows, a multitude of different data sources may be added. And as the analysts require more advanced metrics, the transformations done in the materialised views may become increasingly complex. Moreover, the code for these transformations could become poorly organised if they are all considered to be at the same level. To solve this, one could implement a medallion data architecture with its bronze, silver, and gold layers utilising different datasets in BQ. The bronze layer would consist of the tables as described in the initial proposed solution. The silver layer would contain slightly transformed data, e.g., null value treatment, outlier removal, etc. The gold layer would contain the tables or views accessible to analysts. By following this architecture, the SQL code performing the transformations can be organised by `bronze -> silver` and `silver -> gold`.
+- **Scalability, Simplicity and Maintainability**: 
+	- The current solution extract and loads all ad data for a single day using Cloud Functions. However, as the number of ads increase, this data may become to large for the Cloud Functions to hold in memory. So circumvent this problem one can implement batch extraction and loading. 	
+	- As the project app grows, a multitude of different data sources may be added. And as the analysts require more advanced metrics, the transformations done in the materialised views may become increasingly complex. Moreover, the code for these transformations could become poorly organised if they are all considered to be at the same level. To solve this, one could implement a medallion data architecture with its bronze, silver, and gold layers utilising different datasets in BQ. The bronze layer would consist of the tables as described in the initial proposed solution. The silver layer would contain slightly transformed data, e.g., null value treatment, outlier removal, etc. The gold layer would contain the tables or views accessible to analysts. By following this architecture, the SQL code performing the transformations can be organised by `bronze -> silver` and `silver -> gold`.
 
 - **Data lineage**:
 	- The data load summary report provides data lineage for the between the extraction and load layers. To also provide data lineage in the transformation layer [data lineage in BigQuery](https://cloud.google.com/data-catalog/docs/how-to/track-lineage) ought to be set up.
 
-Batch loading of the size of the data becomes very large. Current implementation just loads everything for one day into RAM.
 
-## 2.4 Timeline
+## 2.5 Timeline
 Below are the time estimates for implementing the initially proposed solution by a single developer, i.e., without extentsions.
 
 - **Extract (3/2/1 weeks)**: 
@@ -92,6 +97,7 @@ From above, we can conclude that the total estimated time for this project is 9 
 
 # 3 Implementation
 
-In `src/data_extractors/` a partial implementation of the abstract class `DataExtractorBase` and the class `DataExtractorFacebook` can be foud. The functinality of these are explained above, and the code is thoruoghly documented. In `src/` a script for executing above implementation of `DataExtractorFacebook` can be found. For explenations on the functionallity of these classes and functions, you are refered to the source code, as it well commented.
+In the `src/data_extractors/` directory, a partial implementation of the abstract class `DataExtractorBase` and the class `DataExtractorFacebook` can be found. The functionality of these classes is braodly explained in section 2.2, and the code is thoroughly commented. Additionally, in the `src/` directory, a script for executing the above implementation of `DataExtractorFacebook` is available. For explanations of the functionality of these classes and functions, please refer to the source code, as it is well-commented.
 
-**Note**: to be able to run `src/run_facebook.py` a `.env` file containing the environment variable `MOCK_END_POINT` must be present at the root of this project. This endpoint ought to be set to the one provided in the exercise description.
+**Note**: To run `src/run_facebook.py`, a `.env` file containing the environment variable `MOCK_END_POINT` must be present at the root of this project. This endpoint should be set to the one provided in the exercise description.
+
