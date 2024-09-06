@@ -4,10 +4,10 @@ import uuid
 import requests
 import pandas as pd
 
-from typing import Dict, List
+from typing import Dict, List, Any
 
 # Local imports
-from .data_extractor_base import DataExtractorBase, BigQueryConnection
+from .data_extractor_base import DataExtractorBase
 
 class DataExtractorFacebook(DataExtractorBase):
     """
@@ -76,7 +76,7 @@ class DataExtractorFacebook(DataExtractorBase):
         app_secret: str,
         app_id: str,
         ad_account_id: str,
-        bq_connection: BigQueryConnection,
+        bq_connection: Any, # Note that typing is placeholder
         metrics_to_fetch: List[str],
         use_mock_end_point: bool = True
     ):

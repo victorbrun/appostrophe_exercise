@@ -4,9 +4,6 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-# Defines placeholder type for Google BIgQuery connection
-type BigQueryConnection = Any
-
 class DataExtractorBase(ABC):
     """
     Abstract base class for data extractors.
@@ -33,7 +30,7 @@ class DataExtractorBase(ABC):
         Adds a unique identifier for each row in the DataFrame.
     """
 
-    def __init__(self, bq_connection: BigQueryConnection):
+    def __init__(self, bq_connection: Any):
         """
         Initialize the DataExtractorBase with a Google BigQuery connection.
 

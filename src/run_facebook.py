@@ -41,7 +41,7 @@ def main():
        app_secret=app_secret,
        app_id=app_id,
        ad_account_id=ad_account_id,
-       bq_connection={} # Placeholder connection
+       bq_connection={}, # Placeholder connection
        metrics_to_fetch=metrics_to_fetch,
        use_mock_end_point=USE_MOCK_API
     )
@@ -55,7 +55,7 @@ def main():
 
     # Uploading data to BQ
     placeholder_kwargs = {"target_table": "marketing.facebook_graph_v20_0"}
-    de.load_to_bq(df, placeholder_connection)
+    de.load_to_bq(df, bq_settings=placeholder_kwargs)
 
 if __name__ == "__main__":
     main()
