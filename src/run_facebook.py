@@ -16,7 +16,7 @@ def main():
     load_dotenv(find_dotenv())
 
     # Extracting Facebook ads environment variables
-    access_token = os.environ.get("ACCESS_TOKE")
+    access_token = os.environ.get("ACCESS_TOKEN")
     app_secret = os.environ.get("APP_SECRET")
     app_id = os.environ.get("APP_ID")
     ad_account_id = os.environ.get("AD_ACCOUNT_ID")

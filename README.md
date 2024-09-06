@@ -97,7 +97,12 @@ From above, we can conclude that the total estimated time for this project is 9 
 
 # 3 Implementation
 
-In the `src/data_extractors/` directory, a partial implementation of the abstract class `DataExtractorBase` and the class `DataExtractorFacebook` can be found. The functionality of these classes is braodly explained in section 2.2, and the code is thoroughly commented. Additionally, in the `src/` directory, a script for executing the above implementation of `DataExtractorFacebook` is available. For explanations of the functionality of these classes and functions, please refer to the source code, as it is well-commented.
+In the `src/data_extractors/` directory, a partial but working implementation of the abstract class `DataExtractorBase` and the class `DataExtractorFacebook` can be found. Moreover, `src/run_facebook.py` is a simple outline of a possble Cloud Function entry point. Note that `src/run_facebook.py` can be run localy.
 
-**Note**: To run `src/run_facebook.py`, a `.env` file containing the environment variable `MOCK_END_POINT` must be present at the root of this project. This endpoint should be set to the one provided in the exercise description.
+Steps to run `src/run_facebook.py` localy:
+1. `cd` into root of this project.
+2. Install the requirements (possibly in a `venv`) by running `pip install -r requirements.txt`.
+3. Create the file `.env` containing the environment variable `MOCK_END_POINT. This environment variable ought to be set to the endpoint provided in the exercise description. Additionally, to make the Facebook Graph API functional, add the following varaibles to `.env`: `ACCESS_TOKEN`, `APP_SECRET`, `APP_ID`, `AD_ACCOUNT_ID`.
+4. Execute `python3 src/run_facebook.py`.
 
+The functionality of `DataExtractorBase` and `DataExtractorFacebook` is broadly explained in section 2.2. For detailed explanations of the functionality of these classes and functions, please refer to the source code, as it is well-commented.
